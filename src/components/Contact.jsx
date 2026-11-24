@@ -4,16 +4,47 @@ import '../components.css';
 
 const Contact = () => {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [isSending, setIsSending] = useState(false);
   
   const handleChange = (e) => {
-    setFormData({...formData, [e.target.name]: e.target.value});
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simulate form submission
-    alert("Thanks for reaching out! I'll get back to you soon.");
-    setFormData({ name: '', email: '', message: '' });
+    setIsSending(true);
+
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          access_key: "90f65bc5-e7d9-43bc-9867-baffc8725f57", // Step 1 madhe milaleli key ithe taka
+          name: formData.name,
+          email: formData.email,
+          message: formData.message,
+          subject: `New Portfolio Message from ${formData.name}`,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert("Thanks for reaching out! Your message has been sent.");
+        setFormData({ name: '', email: '', message: '' });
+      } else {
+        alert("Something went wrong. Please try again.");
+        console.log("Web3Forms Error:", result);
+      }
+    } catch (error) {
+      alert("Network error. Please check your internet connection.");
+      console.error("Error:", error);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -29,7 +60,7 @@ const Contact = () => {
             </p>
             
             <div className="info-items">
-              <a href="hemangichougule29@gmail.com" className="info-item">
+              <a href="mailto:hemangichougule29@gmail.com" className="info-item">
                 <div className="info-icon"><Mail size={20} /></div>
                 <span>hemangichougule29@gmail.com</span>
               </a>
@@ -81,8 +112,8 @@ const Contact = () => {
                 rows="5"
               ></textarea>
             </div>
-            <button type="submit" className="btn btn-primary submit-btn">
-              Send Message <Send size={18} />
+            <button type="submit" className="btn btn-primary submit-btn" disabled={isSending}>
+              {isSending ? "Sending..." : <>Send Message <Send size={18} /></>}
             </button>
           </form>
         </div>
